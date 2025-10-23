@@ -1,0 +1,33 @@
+server:
+  port: ${APP_PORT:8080}
+
+spring:
+  application:
+    name: ${APP_NAME:XlForum}
+  datasource:
+    url: jdbc:mysql://localhost:3306/test
+    username: root
+    password: 123456
+    dirver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP配置:
+    hikari:
+      auto-commit: false
+      connection-timeout: 3000
+      validation-timeout: 3000
+      max-lifetime: 60000
+      maximum-pool-size: 20
+      minimum-idle: 1
+
+pebble:
+  suffix:
+  cache: false
+
+
+mybatis:
+  # Mapper.xml文件的位置（默认扫描resources目录下的mappers文件夹）
+  mapper-locations: classpath:mappers/*.xml
+  # 实体类的包路径（配置后，Mapper.xml中可直接用类名简称，无需全类名）
+  type-aliases-package: com.example.demo.repository.entity
+  # 开启驼峰命名映射（如数据库字段user_name -> 实体类属性userName）
+  configuration:
+    map-underscore-to-camel-case: true
