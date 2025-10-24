@@ -3,13 +3,14 @@ package com.zxl.xlforum.account.dto.req;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import lombok.experimental.Accessors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Accessors(chain = true)
 public class AccountLoginRequest extends AccountBaseRequest{
 
     @Parameter(description = "用户密码")

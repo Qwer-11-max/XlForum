@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zxl.xlforum.account.mapper.AccountMapper">
+
+    <!-- 1. 根据email查询账户（增加account_status字段） -->
+    <select id="selectAccountByEmail" parameterType="java.lang.String" resultType="com.zxl.xlforum.account.entity.Account">
+        SELECT
+        account_id AS accountId,
+        account_name AS accountName,
+        password,
+        email,
+        account_status AS accountStatus,  <!-- 新增状态字段映射 -->
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM account
+        WHERE email = #{email}
+    </select>
+
+    <!-- 2. 根据accountId删除账户（保持不变） -->
+    <delete id="deleteAccountByAccountId" parameterType="java.lang.Integer">
+        DELETE FROM account
+        WHERE account_id = #{accountId}
+    </delete>
+
+    <!-- 3. 插入账户（增加account_status字段） -->
+    <insert id="insertAccount" parameterType="com.zxl.xlforum.account.entity.Account">
+        INSERT INTO account (
+        account_name,
+        password,
+        email,
+        account_status <!-- 新增状态字段 -->
+        ) VALUES (
+        #{accountName},
+        #{password},
+        #{email},
+        #{accountStatus}  <!-- 新增状态值 -->
+        )
+    </insert>
+
+    <!-- 4. 动态更新账户（增加account_status更新条件） -->
+    <update id="updateAccount" parameterType="com.zxl.xlforum.account.entity.Account">
+        UPDATE account
+        <set>
+            <if test="accountName != null">account_name = #{accountName},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="accountStatus != null">account_status = #{accountStatus},</if>  <!-- 新增状态更新 -->
+        </set>
+        WHERE account_id = #{accountId}
+    </update>
+
+</mapper>

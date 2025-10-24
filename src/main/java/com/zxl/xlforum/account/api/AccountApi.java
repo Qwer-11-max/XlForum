@@ -1,13 +1,11 @@
 package com.zxl.xlforum.account.api;
 
-import com.zxl.xlforum.account.dto.req.AccountBaseRequest;
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

@@ -22,12 +22,11 @@ pebble:
   suffix:
   cache: false
 
-
 mybatis:
   # Mapper.xml文件的位置（默认扫描resources目录下的mappers文件夹）
   mapper-locations: classpath:mappers/*.xml
   # 实体类的包路径（配置后，Mapper.xml中可直接用类名简称，无需全类名）
-  type-aliases-package: com.example.demo.repository.entity
+  type-aliases-package: com.zxl.xlforum.*.entity
   # 开启驼峰命名映射（如数据库字段user_name -> 实体类属性userName）
   configuration:
     map-underscore-to-camel-case: true

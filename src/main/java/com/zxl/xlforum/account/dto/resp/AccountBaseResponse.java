@@ -11,7 +11,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 public class AccountBaseResponse extends BaseResponse {
     private String email; //用户邮箱
-    private String userName; //用户名称
-    private String userId; //用户ID
-    private String userStatus; //用户状态
+    private String accountName; //用户名称
+    private Integer accountId; //用户ID
+    private Integer accountStatus; //用户状态
 }
