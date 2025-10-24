@@ -18,10 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public interface AccountApi {
 
+    /**
+     * 登录，需要传入邮箱和密码
+     * @param accountLoginRequest
+     * @return JWTtoken以及用户信息
+     */
     public ResponseEntity<AccountBaseResponse> login(@Valid @RequestBody AccountLoginRequest accountLoginRequest);
 
+    /**
+     * 注册，需要传入邮箱，密码和用户名
+     * @param accountSignupRequest
+     * @return 注册状态
+     */
     public ResponseEntity<AccountBaseResponse> signup(@Valid @RequestBody AccountSignupRequest accountSignupRequest);
 
+    /**
+     * 修改密码，在登陆后传入新密码和旧密码
+     * @param oldPassword
+     * @param newPassword
+     * @return JWT新的token以及用户基本信息
+     */
     public ResponseEntity<AccountBaseResponse> changePassword(@Parameter(description = "用户密码")
                                                               @Size(min = 6, max = 20, message = "密码应在6-20个字符内")
                                                               @RequestParam
@@ -31,7 +47,10 @@ public interface AccountApi {
                                                               @RequestParam
                                                               String newPassword);
 
-    public ResponseEntity<AccountBaseResponse> forgetPassword(@Valid @RequestBody
-                                                              AccountBaseRequest accountBaseRequest);
-
+    /**
+     * 注销用户，需要传入邮箱及密码
+     * @param accountLogoffRequest
+     * @return
+     */
+    public ResponseEntity<AccountBaseResponse> signoff(@Valid @RequestBody AccountLoginRequest accountLogoffRequest);
 }
