@@ -79,6 +79,7 @@ public class AccountService {
         }
         if (account.getAccountStatus() != 0) {
             resp.setMessage("账户异常");
+            return resp;
         }
 
         //todo 对比密码
@@ -95,11 +96,10 @@ public class AccountService {
             resp.setEmail(account.getEmail());
 
             resp.setMessage("登录成功");
-            return resp;
         } else {
             resp.setMessage("登陆失败，密码错误");
-            return resp;
         }
+        return resp;
     }
 
     /**
