@@ -1,9 +1,5 @@
 package com.zxl.xlforum.account.entity;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,10 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-@Table(name = "account")
 public class Account {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer accountId; //账户ID
     private String accountName; //账户名称
     private String password; //账户密码

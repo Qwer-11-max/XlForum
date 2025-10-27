@@ -4,39 +4,62 @@ import com.zxl.xlforum.account.api.AccountApi;
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
+import com.zxl.xlforum.account.dto.resp.JwtResponse;
+import com.zxl.xlforum.account.security.JwtUtils;
+import com.zxl.xlforum.account.service.AccountService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Account",description = "账户操作")
+@RestController
+@RequestMapping("/")
 public class AccountController implements AccountApi {
+    @Autowired
+    JwtUtils jwtUtils;
 
+    @Autowired
+    AccountService accountService;
+
+    @Operation(description = "登录")
+    @PostMapping("/login")
     @Override
-    public ResponseEntity<AccountBaseResponse> login(AccountLoginRequest accountLoginRequest) {
-        //todo 验证用户名和密码
-        //todo 返回登录信息以及状态
-        return null;
+    public ResponseEntity<?> login(AccountLoginRequest accountLoginRequest) {
+        AccountBaseResponse resp = accountService.login(accountLoginRequest);
+        return ResponseEntity.ok(resp);
     }
 
+    @Operation(description = "注册")
+    @PostMapping("/signup")
     @Override
-    public ResponseEntity<AccountBaseResponse> signup(AccountSignupRequest accountSignupRequest) {
+    public ResponseEntity<?> signup(AccountSignupRequest accountSignupRequest) {
         //todo 调用服务进行注册
+        AccountBaseResponse resp =  accountService.signup(accountSignupRequest);
         //todo 封装消息和状态
-        return null;
+        return ResponseEntity.ok(resp);
     }
 
+    @Operation(description = "修改密码")
+    @PostMapping("/changePassword")
     @Override
-    public ResponseEntity<AccountBaseResponse> changePassword(String oldPassword, String newPassword) {
-        //todo 验证登录状态
-        //todo 提取email
+    public ResponseEntity<?> changePassword(String email,
+                                            String oldPassword,
+                                            String newPassword) {
         //todo 将email和新旧密码传入服务
+        AccountBaseResponse resp = accountService.changePassword(email,oldPassword,newPassword);
         //todo 返回状态
-        return null;
+        return ResponseEntity.ok(resp);
     }
 
+    @Operation(description = "注销用户")
+    @PostMapping("/signoff")
     @Override
-    public ResponseEntity<AccountBaseResponse> signoff(AccountLoginRequest accountLogoffRequest) {
-        //todo 验证用户登录状态
-        //todo 提取email
-        //todo 将email与密码传入服务
-        //todo 返回删除信息
-        return null;
+    public ResponseEntity<?> signoff(AccountLoginRequest accountLogoffRequest) {
+        AccountBaseResponse resp = accountService.signoff(accountLogoffRequest.getEmail(),accountLogoffRequest.getPassword());
+        return ResponseEntity.ok(resp);
     }
 }

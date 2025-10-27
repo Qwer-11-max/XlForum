@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS account (
     account_id INT AUTO_INCREMENT COMMENT '账户ID',
     account_name VARCHAR(50) COMMENT '账户名称',
-    password VARCHAR(50) COMMENT '账户密码',
+    password VARCHAR(200) COMMENT '账户密码',
     email VARCHAR(100) NOT NULL COMMENT '账户email',
     account_status INT NOT NULL DEFAULT 0 COMMENT '账户状态：0-正常 1-冻结 2-注销',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '账户创建时间',

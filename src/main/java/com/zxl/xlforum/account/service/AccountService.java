@@ -5,6 +5,8 @@ import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
 import com.zxl.xlforum.account.entity.Account;
 import com.zxl.xlforum.account.mapper.AccountMapper;
+import com.zxl.xlforum.account.security.Argon2PasswordEncoder;
+import com.zxl.xlforum.account.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,22 +18,18 @@ public class AccountService {
     @Autowired
     AccountMapper accountMapper;
 
+    @Autowired
+    Argon2PasswordEncoder  argon2PasswordEncoder;
+    @Autowired
+    private JwtUtils jwtUtils;
+
     /**
      * 工具，使用email获取账号
      * @param email
      * @return 账号信息
      */
-    private Account getAccountByEmail(String email) {
+    public Account getAccountByEmail(String email) {
         return accountMapper.selectAccountByEmail(email);
-    }
-
-    /**
-     * 工具，加密密码
-     * @param password
-     * @return 加密后的密码
-     */
-    private String encodePassword(String password) {
-        return null;
     }
 
     /**
@@ -48,8 +46,8 @@ public class AccountService {
             return  resp;
         }
 
-        //todo 加密密码
-        String pwd = accountSignupRequest.getPassword();
+        // 加密密码
+        String pwd = argon2PasswordEncoder.encode(accountSignupRequest.getPassword());
 
         // 执行新增
         Account insertAccount = new Account();
@@ -71,7 +69,7 @@ public class AccountService {
      */
     public AccountBaseResponse login(AccountLoginRequest accountLoginRequest) {
         AccountBaseResponse resp = new AccountBaseResponse();
-        //todo 用email查询
+        // 用email查询
         Account account = getAccountByEmail(accountLoginRequest.getEmail());
         if (account == null) {
             resp.setMessage("登录失败，账户不存在");
@@ -82,12 +80,10 @@ public class AccountService {
             return resp;
         }
 
-        //todo 对比密码
-        String pwd = accountLoginRequest.getPassword();
 
-        if (account.getPassword().equals(pwd)) {
-            //todo 使用email生成token
-            String token = "123";
+        if (argon2PasswordEncoder.matches(accountLoginRequest.getPassword(), account.getPassword())) {
+            // 使用email生成token
+            String token = jwtUtils.generateJwtToken(account.getEmail());
             resp.setToken(token);
 
             resp.setAccountName(account.getAccountName());
@@ -118,12 +114,9 @@ public class AccountService {
             return resp;
         }
 
-        // 比较旧密码
-        String pwd = oldPassword;
-
-        if(account.getPassword().equals(pwd)) {
+        if(argon2PasswordEncoder.matches(oldPassword, account.getPassword())) {
             // 加密密码
-            String newPwd = newPassword;
+            String newPwd = argon2PasswordEncoder.encode(newPassword);
 
             // 执行更新
             Account updateAccount = new Account();
@@ -134,7 +127,7 @@ public class AccountService {
 
             accountMapper.updateAccount(updateAccount);
             // 生成新的token
-            String token = "123";
+            String token = jwtUtils.generateJwtToken(account.getEmail());
 
             resp.setToken(token);
             resp.setAccountName(account.getAccountName());
@@ -164,9 +157,8 @@ public class AccountService {
             resp.setMessage("注销失败，用户不存在");
             return  resp;
         }
-        // 比较密码
-        String pwd = password;
-        if(account.getPassword().equals(pwd)) {
+
+        if(argon2PasswordEncoder.matches(password, account.getPassword())) {
             accountMapper.deleteAccountByAccountId(account.getAccountId());
 
             resp.setMessage("注销成功");
