@@ -2,18 +2,17 @@ package com.zxl.xlforum.account.api;
 
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
-import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@Validated
+@RequestMapping("/")
 public interface AccountApi {
     /**
      * 登录，需要传入邮箱和密码
@@ -21,7 +20,7 @@ public interface AccountApi {
      * @return JWTtoken,用户信息,消息机制
      */
     ResponseEntity<?> login(
-            @Valid @RequestBody
+            @Valid
             AccountLoginRequest accountLoginRequest
     );
 
@@ -31,7 +30,7 @@ public interface AccountApi {
      * @return 注册消息
      */
     ResponseEntity<?> signup(
-            @Valid @RequestBody
+            @Valid
             AccountSignupRequest accountSignupRequest
     );
 
@@ -43,24 +42,26 @@ public interface AccountApi {
      * @return JWT新的token以及用户基本信息
      */
     ResponseEntity<?> changePassword(
-            @Email
+            @Email(message = "邮箱格式错误")
                 String email,
-            @Parameter(description = "用户密码")
             @Size(min = 6, max = 20, message = "密码应在6-20个字符内")
-            @RequestParam
                 String oldPassword,
-            @Parameter(description = "用户密码")
             @Size(min = 6, max = 20, message = "密码应在6-20个字符内")
-            @RequestParam
-                String newPassword);
-
+                String newPassword
+    );
     /**
      * 注销用户，需要传入邮箱及密码
-     * @param accountLogoffRequest
+     *
+     * @param email
+     * @param password
      * @return
      */
     ResponseEntity<?> signoff(
-            @Valid @RequestBody
-            AccountLoginRequest accountLogoffRequest
+            @Email(message = "邮箱格式错误")
+                String email,
+            @Size(min = 6, max = 20, message = "密码应在6-20个字符内")
+                String password
     );
+
+
 }

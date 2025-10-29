@@ -1,23 +1,216 @@
 package com.zxl.xlforum;
 
 import com.zxl.xlforum.account.controller.AccountController;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.TestMethodOrder;
+import com.zxl.xlforum.account.intercept.AuthInterceptor;
+import com.zxl.xlforum.config.WebConfig;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.*;
 
-@SpringBootTest(classes = AccountController.class)
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
+import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.stream.Stream;
+
+@SpringBootTest
 @ActiveProfiles("test")
+@AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Sql(scripts = {
         "classpath:testSql/Account.sql",       // 初始化表结构（若已手动建表可保留注释）
-        "classpath:testSql/insertAccount.sql"  // 插入 loginTest 依赖的测试用户（如1670@qq.com、lisi@test.com）
 }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Import({AuthInterceptor.class, WebConfig.class})
 public class AccountControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    // 全局token，用于模拟无状态连接
+    private static String globalToken;
+
+    // 测试用账号信息
+    // 改为固定常量（编译期可确定），通过@Transactional保证测试后数据回滚，无需动态生成
+    private static final String TEST_EMAIL = "test_integration@example.com";
+    private static final String TEST_PASSWORD = "Test123456!";
+    private static final String TEST_NAME = "TestUser";
+
+    // 在所有测试前先注册并登录获取token
+    @Test
+    @Order(1)
+    public void setup() throws Exception {
+        // 注册测试账号
+        AccountSignupRequest signupRequest = new AccountSignupRequest();
+        signupRequest.setEmail(TEST_EMAIL);
+        signupRequest.setPassword(TEST_PASSWORD);
+        signupRequest.setAccountName(TEST_NAME);
+
+        mockMvc.perform(post("/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("注册成功"));
+
+        // 登录获取token
+        AccountLoginRequest loginRequest = new AccountLoginRequest();
+        loginRequest.setEmail(TEST_EMAIL);
+        loginRequest.setPassword(TEST_PASSWORD);
+
+        MvcResult result = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists())
+                .andReturn();
+
+        // 提取token保存到全局变量
+        String responseJson = result.getResponse().getContentAsString();
+        globalToken = objectMapper.readTree(responseJson).get("token").asText();
+    }
+
+    // 测试登录功能 - 参数化测试（添加参数说明）
+    @ParameterizedTest(
+            name = "登录测试 - 邮箱: {0}, 密码: {1}, 预期结果: {3}"
+    )
+    @CsvSource({
+            TEST_EMAIL + ", " + TEST_PASSWORD + ", 登录成功",  // 正确的账号密码
+            TEST_EMAIL + ", wrongpassword, 登陆失败，密码错误",         // 错误的密码
+            "nonexistent@example.com, anypassword, 登录失败，账户不存在"  // 不存在的账号
+    })
+    @Order(2)
+    public void testLogin(String email, String password, String expectedMessage) throws Exception {
+        AccountLoginRequest loginRequest = new AccountLoginRequest();
+        loginRequest.setEmail(email);
+        loginRequest.setPassword(password);
+
+        mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(expectedMessage));
+    }
+
+    // 测试注册功能 - 参数化测试（添加参数说明）
+    @ParameterizedTest(
+            name = "注册测试 - 请求信息: {0}, 预期结果: {1}"
+    )
+    @MethodSource("provideSignupData")
+    @Order(3)
+    public void testSignup(AccountSignupRequest request, int expectStatus, String expectedMessage) throws Exception {
+        ResultActions temp  = mockMvc.perform(post("/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)));
+
+                temp.andExpect(status().is(expectStatus));
+                if(expectStatus == 200) {
+                    temp.andExpect(jsonPath("$.message").value(expectedMessage));
+                }
+    }
+
+    // 提供注册测试数据
+    private static Stream<Object[]> provideSignupData() {
+        // 新的测试邮箱，避免与setup中创建的重复
+        String newEmail = "new_test_" + System.currentTimeMillis() + "@example.com";
+
+        // 有效注册信息
+        AccountSignupRequest validRequest = new AccountSignupRequest();
+        validRequest.setEmail(newEmail);
+        validRequest.setPassword(TEST_PASSWORD);
+        validRequest.setAccountName("NewTestUser");
+
+        // 重复注册信息
+        AccountSignupRequest duplicateRequest = new AccountSignupRequest();
+        duplicateRequest.setEmail(TEST_EMAIL);
+        duplicateRequest.setPassword(TEST_PASSWORD);
+        duplicateRequest.setAccountName(TEST_NAME);
+
+        // 无效邮箱格式
+        AccountSignupRequest invalidEmailRequest = new AccountSignupRequest();
+        invalidEmailRequest.setEmail("invalid-email");
+        invalidEmailRequest.setPassword(TEST_PASSWORD);
+        invalidEmailRequest.setAccountName("InvalidEmailUser");
+
+        return Stream.of(
+                new Object[]{validRequest,200 ,"注册成功"},
+                new Object[]{duplicateRequest,200, "注册失败，账户已存在"},
+                new Object[]{invalidEmailRequest,400, "邮箱格式无效"}
+        );
+    }
+
+    // 测试修改密码功能 - 参数化测试（添加参数说明）
+    @ParameterizedTest(
+            name = "修改密码测试 - 旧密码: {0}, 新密码: {1}, 预期结果: {3}"
+    )
+    @MethodSource("provideChangePasswordData")
+    @Order(4)
+    public void testChangePassword(String oldPassword, String newPassword, int expectedStatus,String expectedMessage) throws Exception {
+        ResultActions resultActions = mockMvc.perform(post("/changePassword")
+                .header("Authorization", "Bearer " + globalToken)
+                .param("oldPassword", oldPassword)
+                .param("newPassword", newPassword));
+
+        // 先断言预期状态（无论成功还是失败）
+        resultActions.andExpect(status().is(expectedStatus));
+
+        // 如果预期是成功（200），再断言消息
+        if (expectedStatus == 200) { // 注意：这里仍有问题，需进一步修正
+            resultActions.andExpect(jsonPath("$.message").value(expectedMessage));
+        }
+        // 如果预期是400，也可以断言错误消息
+        else if (expectedStatus == 400) {
+            resultActions.andExpect(content().string(containsString(expectedMessage)));
+            // 若用自定义Result对象，可改为：jsonPath("$.message").value(expectedMessage)
+        }
+    }
+
+    // 提供修改密码的测试数据（MethodSource格式）
+    private static Stream<Object[]> provideChangePasswordData() {
+        // 数组元素顺序：oldPassword, newPassword, expectedMessage
+        return Stream.of(
+                new Object[]{TEST_PASSWORD, "NewTest123!",200, "密码修改成功"},  // 正确的旧密码
+                new Object[]{"wrongpassword", "NewTest123!",200, "密码修改失败，旧密码错误"},   // 错误的旧密码
+                new Object[]{TEST_PASSWORD, "short",400, "密码应在6-20个字符内"}       // 无效的新密码
+        );
+    }
+
+
+    // 测试注销功能 - 参数化测试（添加参数说明）
+    @ParameterizedTest(
+            name = "注销测试 - 邮箱: {0}, 密码: {1}, 预期结果: {2}"
+    )
+    @CsvSource({
+            "wrongpassword, 密码错误，注销失败",          // 错误的密码
+            "NewTest123!" + ", 注销成功",  // 正确的账号密码
+    })
+    @Order(5)
+    public void testSignoff(String password, String expectedMessage) throws Exception {
+        AccountLoginRequest logoffRequest = new AccountLoginRequest();
+        logoffRequest.setPassword(password);
+
+        mockMvc.perform(post("/signoff")
+                        .header("Authorization", "Bearer " + globalToken)  // 使用全局token
+                        .param("password", password))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(expectedMessage));
+    }
 }

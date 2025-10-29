@@ -27,7 +27,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 只拦截特定路径
         String path = request.getRequestURI();
-        if (!path.startsWith("/changepassword") && !path.startsWith("/signoff")) {
+        if (!path.startsWith("/changePassword") && !path.startsWith("/signoff")) {
             return true;
         }
 

@@ -1,15 +1,6 @@
-server:
-  port: ${APP_PORT:8080}
-
 spring:
   application:
     name: ${APP_NAME:XlForum}
-#  datasource:
-#    url: jdbc:mysql://localhost:3306/xlforum
-#    username: root
-#    password: 123456
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-    # HikariCP配置:
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE
     # 关键参数说明：
@@ -37,12 +28,3 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-mybatis:
-  # Mapper.xml文件的位置（默认扫描resources目录下的mappers文件夹）
-  mapper-locations: classpath:mappers/*.xml
-  # 实体类的包路径（配置后，Mapper.xml中可直接用类名简称，无需全类名）
-  type-aliases-package: com.zxl.xlforum.*.entity
-  # 开启驼峰命名映射（如数据库字段user_name -> 实体类属性userName）
-  configuration:
-    map-underscore-to-camel-case: true
