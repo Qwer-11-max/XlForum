@@ -1,5 +1,7 @@
 package com.zxl.xlforum.account.controller;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageInfo;
 import com.zxl.xlforum.account.api.AccountApi;
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
@@ -8,8 +10,6 @@ import com.zxl.xlforum.account.security.JwtUtils;
 import com.zxl.xlforum.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -60,6 +60,12 @@ public class AccountController implements AccountApi {
     @Override
     public ResponseEntity<?> signoff(@RequestAttribute String email,@RequestParam String password) {
         AccountBaseResponse resp = accountService.signoff(email,password);
+        return ResponseEntity.ok(resp);
+    }
+
+    @Override
+    public ResponseEntity<PageInfo<?>> getAllAccount(int pageNum,int pageSize) {
+        PageInfo<String> resp = accountService.getAccountByPage(pageNum,pageSize);
         return ResponseEntity.ok(resp);
     }
 }

@@ -109,6 +109,12 @@
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>3.0.3</version> <!-- Spring Boot 3.5.7 管理的版本 -->
         </dependency>
+        <!-- PageHelper分页插件 -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>1.4.6</version> <!-- 最新版本可到Maven仓库查询 -->
+        </dependency>
     </dependencies>
 
     <repositories>

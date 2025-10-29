@@ -1,5 +1,6 @@
 package com.zxl.xlforum.account.api;
 
+import com.github.pagehelper.PageInfo;
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -63,5 +64,14 @@ public interface AccountApi {
                 String password
     );
 
+    /**
+     * 获取所有用户列表
+     * @return
+     */
+    @GetMapping("/getAllAccount")
+    ResponseEntity<PageInfo<?>> getAllAccount(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize
+    );
 
 }

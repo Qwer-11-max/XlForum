@@ -1,5 +1,8 @@
 package com.zxl.xlforum.account.service;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
@@ -10,6 +13,8 @@ import com.zxl.xlforum.account.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -167,5 +172,20 @@ public class AccountService {
         }
 
         return resp;
+    }
+
+    /**
+     * 分页查询用户
+     * @param pageNum 页码（从1开始）
+     * @param pageSize 每页条数
+     * @return 分页结果（包含数据和分页信息）
+     */
+    public PageInfo<String> getAccountByPage(int pageNum, int pageSize) {
+        // 开启分页：必须在查询方法前调用
+        Page<Object> objects = PageHelper.startPage(pageNum, pageSize);
+        // 执行查询：返回的List实际是Page对象（包含分页信息）
+        List<String> accountList = accountMapper.findAll();
+        // 强转为Page对象（或直接返回，Page是List的子类）
+        return new PageInfo<>(accountList);
     }
 }

@@ -18,6 +18,13 @@
         WHERE email = #{email}
     </select>
 
+    <!-- 查询所有用户 -->
+    <select id="findAll" resultType="java.lang.String">
+        SELECT
+        email
+        FROM account
+    </select>
+
     <!-- 2. 根据accountId删除账户（保持不变） -->
     <delete id="deleteAccountByAccountId" parameterType="java.lang.Integer">
         DELETE FROM account

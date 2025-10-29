@@ -13,7 +13,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.*;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,9 +55,35 @@ public class AccountControllerTest {
     private static final String TEST_PASSWORD = "Test123456!";
     private static final String TEST_NAME = "TestUser";
 
-    // 在所有测试前先注册并登录获取token
+    /**
+     * 在所有测试方法执行前，通过注册接口注入20条测试数据
+     */
     @Test
     @Order(1)
+    public void init20TestAccounts() throws Exception {
+        // 生成20个唯一账号（邮箱、用户名带序号，避免重复）
+        for (int i = 1; i <= 20; i++) {
+            // 构建唯一的注册信息（与现有测试账号区分开）
+            String testEmail = "page_test_user_" + i + "@example.com";
+            String testName = "PageTestUser" + i;
+
+            AccountSignupRequest signupRequest = new AccountSignupRequest();
+            signupRequest.setEmail(testEmail);
+            signupRequest.setPassword(TEST_PASSWORD);  // 统一密码，简化测试
+            signupRequest.setAccountName(testName);
+
+            // 执行注册请求
+            mockMvc.perform(MockMvcRequestBuilders.post("/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(signupRequest)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("注册成功"));  // 验证注册成功
+        }
+    }
+
+    // 在所有测试前先注册并登录获取token
+    @Test
+    @Order(2)
     public void setup() throws Exception {
         // 注册测试账号
         AccountSignupRequest signupRequest = new AccountSignupRequest();
@@ -65,7 +91,7 @@ public class AccountControllerTest {
         signupRequest.setPassword(TEST_PASSWORD);
         signupRequest.setAccountName(TEST_NAME);
 
-        mockMvc.perform(post("/signup")
+        mockMvc.perform(MockMvcRequestBuilders.post("/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signupRequest)))
                 .andExpect(status().isOk())
@@ -76,7 +102,7 @@ public class AccountControllerTest {
         loginRequest.setEmail(TEST_EMAIL);
         loginRequest.setPassword(TEST_PASSWORD);
 
-        MvcResult result = mockMvc.perform(post("/login")
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -97,13 +123,13 @@ public class AccountControllerTest {
             TEST_EMAIL + ", wrongpassword, 登陆失败，密码错误",         // 错误的密码
             "nonexistent@example.com, anypassword, 登录失败，账户不存在"  // 不存在的账号
     })
-    @Order(2)
+    @Order(3)
     public void testLogin(String email, String password, String expectedMessage) throws Exception {
         AccountLoginRequest loginRequest = new AccountLoginRequest();
         loginRequest.setEmail(email);
         loginRequest.setPassword(password);
 
-        mockMvc.perform(post("/login")
+        mockMvc.perform(MockMvcRequestBuilders.post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -115,9 +141,9 @@ public class AccountControllerTest {
             name = "注册测试 - 请求信息: {0}, 预期结果: {1}"
     )
     @MethodSource("provideSignupData")
-    @Order(3)
+    @Order(4)
     public void testSignup(AccountSignupRequest request, int expectStatus, String expectedMessage) throws Exception {
-        ResultActions temp  = mockMvc.perform(post("/signup")
+        ResultActions temp  = mockMvc.perform(MockMvcRequestBuilders.post("/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)));
 
@@ -162,9 +188,9 @@ public class AccountControllerTest {
             name = "修改密码测试 - 旧密码: {0}, 新密码: {1}, 预期结果: {3}"
     )
     @MethodSource("provideChangePasswordData")
-    @Order(4)
+    @Order(5)
     public void testChangePassword(String oldPassword, String newPassword, int expectedStatus,String expectedMessage) throws Exception {
-        ResultActions resultActions = mockMvc.perform(post("/changePassword")
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.post("/changePassword")
                 .header("Authorization", "Bearer " + globalToken)
                 .param("oldPassword", oldPassword)
                 .param("newPassword", newPassword));
@@ -202,15 +228,51 @@ public class AccountControllerTest {
             "wrongpassword, 密码错误，注销失败",          // 错误的密码
             "NewTest123!" + ", 注销成功",  // 正确的账号密码
     })
-    @Order(5)
+    @Order(6)
     public void testSignoff(String password, String expectedMessage) throws Exception {
         AccountLoginRequest logoffRequest = new AccountLoginRequest();
         logoffRequest.setPassword(password);
 
-        mockMvc.perform(post("/signoff")
+        mockMvc.perform(MockMvcRequestBuilders.post("/signoff")
                         .header("Authorization", "Bearer " + globalToken)  // 使用全局token
                         .param("password", password))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(expectedMessage));
+    }
+
+    // 分页查询测试 - 参数化测试
+    @ParameterizedTest(
+            name = "分页查询测试 - 页码: {0}, 每页条数: {1}, 预期页码: {2}, 预期每页条数: {3}"
+    )
+    @MethodSource("providePageData")
+    @Order(7)  // 顺序排在其他测试之后
+    public void testPageQuery(int pageNum, int pageSize, int expectedPageNum, int expectedPageSize) throws Exception {
+        // 执行分页查询请求（假设需要认证，携带全局token）
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/getAllAccount")
+                .param("pageNum", String.valueOf(pageNum))
+                .param("pageSize", String.valueOf(pageSize))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // 验证基础响应状态
+        resultActions.andExpect(status().isOk());
+
+        // 验证分页核心参数
+        resultActions
+                .andExpect(jsonPath("$.pageNum").value(expectedPageNum))  // 验证实际页码（考虑分页合理化）
+                .andExpect(jsonPath("$.pageSize").value(expectedPageSize))  // 验证每页条数
+                .andExpect(jsonPath("$.list").isArray())  // 验证数据列表为数组
+                .andExpect(jsonPath("$.total").isNumber());  // 验证总条数为数字
+    }
+
+    // 提供分页测试数据（考虑分页合理化配置）
+// 数据格式：[请求页码, 请求每页条数, 预期实际页码, 预期每页条数]
+    private static Stream<Object[]> providePageData() {
+        return Stream.of(
+                new Object[]{1, 5, 1, 5},    // 正常页码+正常条数
+                new Object[]{0, 5, 1, 5},    // 页码<=0（合理化后返回第1页）
+                new Object[]{100, 5, 5, 5},  // 页码超过总页数（假设总页数为3，合理化后返回最后一页）
+                new Object[]{2, 10, 2, 10},  // 较大每页条数
+                new Object[]{1, 0, 1, 0}    // 条数<=0（假设默认条数为10）
+        );
     }
 }
