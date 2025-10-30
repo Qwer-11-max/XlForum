@@ -111,7 +111,7 @@ public class AccountControllerTest {
 
     // 测试登录功能 - 参数化测试（添加参数说明）
     @ParameterizedTest(
-            name = "登录测试 - 邮箱: {0}, 密码: {1}, 预期结果: {3}"
+            name = "登录测试 - 邮箱: {0}, 密码: {1}, 预期结果: {2}"
     )
     @CsvSource({
             TEST_EMAIL + ", " + TEST_PASSWORD + ", 登录成功",  // 正确的账号密码
@@ -217,7 +217,7 @@ public class AccountControllerTest {
 
     // 测试注销功能 - 参数化测试（添加参数说明）
     @ParameterizedTest(
-            name = "注销测试 - 邮箱: {0}, 密码: {1}, 预期结果: {2}"
+            name = "注销测试 - 密码: {0}, 预期结果: {1}"
     )
     @CsvSource({
             "wrongpassword, 密码错误，注销失败",          // 错误的密码
