@@ -1,11 +1,9 @@
 package com.zxl.xlforum;
 
-import com.zxl.xlforum.account.controller.AccountController;
-import com.zxl.xlforum.account.intercept.AuthInterceptor;
+import com.zxl.xlforum.common.intercept.AuthInterceptor;
 import com.zxl.xlforum.config.WebConfig;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,12 +20,9 @@ import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Stream;
 

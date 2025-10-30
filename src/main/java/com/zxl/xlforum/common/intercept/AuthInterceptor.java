@@ -1,4 +1,4 @@
-package com.zxl.xlforum.account.intercept;
+package com.zxl.xlforum.common.intercept;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;

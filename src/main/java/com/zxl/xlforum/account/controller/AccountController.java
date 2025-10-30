@@ -1,12 +1,11 @@
 package com.zxl.xlforum.account.controller;
 
-import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
 import com.zxl.xlforum.account.api.AccountApi;
 import com.zxl.xlforum.account.dto.req.AccountLoginRequest;
 import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
-import com.zxl.xlforum.account.security.JwtUtils;
+import com.zxl.xlforum.common.security.JwtUtils;
 import com.zxl.xlforum.account.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

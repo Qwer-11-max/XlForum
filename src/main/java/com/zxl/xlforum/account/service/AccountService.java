@@ -8,9 +8,12 @@ import com.zxl.xlforum.account.dto.req.AccountSignupRequest;
 import com.zxl.xlforum.account.dto.resp.AccountBaseResponse;
 import com.zxl.xlforum.account.entity.Account;
 import com.zxl.xlforum.account.mapper.AccountMapper;
-import com.zxl.xlforum.account.security.Argon2PasswordEncoder;
-import com.zxl.xlforum.account.security.JwtUtils;
+import com.zxl.xlforum.common.security.Argon2PasswordEncoder;
+import com.zxl.xlforum.common.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,7 @@ public class AccountService {
      * @param email
      * @return 账号信息
      */
+    @Cacheable(value = "accountCache",key = "'account::email::' + #email",unless = "'#result == null'")
     public Account getAccountByEmail(String email) {
         return accountMapper.selectAccountByEmail(email);
     }
@@ -110,6 +114,7 @@ public class AccountService {
      * @param newPassword
      * @return
      */
+    @CachePut(value = "accountCache",key = "'account::email::' + #email",unless = "#result == null")
     public AccountBaseResponse changePassword(String email, String oldPassword,String newPassword) {
         // 用email查询
         AccountBaseResponse resp = new AccountBaseResponse();
@@ -154,6 +159,7 @@ public class AccountService {
      * @param password
      * @return
      */
+    @CacheEvict(value = "accountCache",key = "'account::email::' + #email")
     public AccountBaseResponse signoff(String email, String password) {
         // 用email查询
         AccountBaseResponse resp = new AccountBaseResponse();

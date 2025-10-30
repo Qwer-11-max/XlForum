@@ -115,6 +115,16 @@
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>1.4.6</version> <!-- 最新版本可到Maven仓库查询 -->
         </dependency>
+        <!-- Spring Boot Redis Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Lettuce连接池依赖（必须添加，否则连接池配置不生效） -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
     </dependencies>
 
     <repositories>

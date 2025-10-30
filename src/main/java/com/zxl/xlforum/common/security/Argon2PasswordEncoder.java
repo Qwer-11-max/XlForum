@@ -1,4 +1,4 @@
-package com.zxl.xlforum.account.security;
+package com.zxl.xlforum.common.security;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;

@@ -1,6 +1,6 @@
 package com.zxl.xlforum.config;
 
-import com.zxl.xlforum.account.intercept.AuthInterceptor;
+import com.zxl.xlforum.common.intercept.AuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

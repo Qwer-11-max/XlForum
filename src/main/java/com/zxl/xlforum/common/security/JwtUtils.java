@@ -1,4 +1,4 @@
-package com.zxl.xlforum.account.security;
+package com.zxl.xlforum.common.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
